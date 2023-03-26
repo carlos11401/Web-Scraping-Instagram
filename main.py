@@ -1,35 +1,78 @@
-from webdriver_manager.chrome import  ChromeDriverManager
+# install chromedriver automatically
+import os
+import pickle
+import sys
+from webdriver_manager.chrome import ChromeDriverManager
+# selenium driver
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-#from selenium.webdriver.common.by import By
+# define type of element to search
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait # wait for element
+from selenium.webdriver.support import expected_conditions as ec # conditions to wait for
+from selenium.common.exceptions import TimeoutException # exception to handle
+# instagram credentials
+from src.config_ig import *
+#
+instagram_url = 'https://www.instagram.com'
+instagram_robots_url = 'https://www.instagram.com/robots.txt'
 
+# Define a function to initialize a Chrome WebDriver instance
 def init_chrome():
+    # Use the ChromeDriverManager to get the latest version of the ChromeDriver executable and install it
     path = ChromeDriverManager(path='./chromedriver').install()
 
+    # Set up Chrome options
     options = Options()
-    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36'
+
+    # Set the user agent for the browser
+    user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36 OPR/96.0.0.0'
     options.add_argument(f'user-agent={user_agent}')
+
+    # Set the window size
     options.add_argument('--window-size=1000,1000')
+
+    # Disable web security
     options.add_argument('--disable-web-security')
+
+    # Disable extensions
     options.add_argument('--disable-extensions')
+
+    # Disable notifications
     options.add_argument('--disable-notifications')
+
+    # Ignore certificate errors
     options.add_argument('--ignore-certificate-errors')
+
+    # Disable the sandbox
     options.add_argument('--no-sandbox')
+
+    # Set the log level
     options.add_argument('--log-level=3')
+
+    # Allow running insecure content
     options.add_argument('--allow-running-insecure-content')
+
+    # Disable default browser check
     options.add_argument('--no-default-browser-check')
+
+    # Disable first run
     options.add_argument('--no-first-run')
+
+    # Disable proxy server
     options.add_argument('--no-proxy-server')
+
+    # Disable Blink features
     options.add_argument('--disable-blink-features=AutomationControlled')
-    # 
+
     exp_options = [
                     'enable-automation', 
                     'ignore-certificate-errors', 
                     'enable-logging'
                     ]
     options.add_experimental_option('excludeSwitches', exp_options)
-    #
+
     preferences = {
                     'profile.default_content_setting_values': 2,
                     'intl.accept_languages': ['es-ES', 'es'],
@@ -37,14 +80,70 @@ def init_chrome():
                 }
     options.add_experimental_option('prefs', preferences)
 
-    myService = Service(path)
+    myService = Service(path) 
     driver = webdriver.Chrome(service=myService, options=options)
+    driver.set_window_position(0, 0)
     return driver
+
+def login_instagram():
+    
+
+    if os.path.exists('instagram.cookies'):
+        print('>> Logging in by cookies...')
+        print('>> Cookies found')
+        
+        cookies = pickle.load(open('instagram.cookies', 'rb'))
+        driver.get(instagram_robots_url)
+        for cookie in cookies:
+            driver.add_cookie(cookie)
+        driver.refresh()
+        driver.get(instagram_url)
+        print('>> Login successful')
+        return True
+    
+    print('>> Logging in ...')
+    driver.get(instagram_url)
+    try:
+        # text box for username
+        element = wait.until(ec.visibility_of_element_located((By.NAME, 'username'))) # wait for element to appear
+        element.send_keys(USER_IG)
+
+        # text box for password
+        element = wait.until(ec.visibility_of_element_located((By.NAME, 'password'))) # wait for element to appear
+        element.send_keys(PASSWORD_IG)
+
+        # button to login
+        element = wait.until(ec.element_to_be_clickable((By.XPATH, '//button[@type="submit"]'))) # wait for element to appear
+        element.click()
+
+        # button to save information
+        element = wait.until(ec.element_to_be_clickable((By.XPATH, '//button[text()="Save Info"]'))) # wait for element to appear
+        element.click()
+
+        # test if login was successful
+        element = wait.until(ec.element_to_be_clickable((By.CSS_SELECTOR, 'article[role="presentation"]'))) # wait for element to appear
+        print('>> Login successful')
+
+    except TimeoutException:
+        print('>> ERROR!!! Element not found')
+        return False
+    
+    cookies = driver.get_cookies()
+    pickle.dump(cookies, open('instagram.cookies', 'wb'))
+    print('>> Cookies saved.')
+    return True
+
 
 if __name__ == '__main__':
     driver = init_chrome()
-    url = 'https://www.instagram.com'
-    
-    driver.get(url)
-    input('Press any key to continue...')
+    wait = WebDriverWait(driver, 10) # wait for 10 seconds for element to appear
+    res_login = login_instagram()
+    if not res_login:
+        print('>> Login unsuccessful')
+
+    input('>> Press any key to continue...')
     driver.quit()
+    sys.exit(1)
+
+
+

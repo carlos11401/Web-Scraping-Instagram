@@ -1,0 +1,4 @@
+- install selenium and webdriver_manager
+- You can find out what the user agent of your web browser is by 
+   visiting a website that displays your user agent string, such 
+   as "http://whatsmyuseragent.org/" or "http://useragentstring.com/".
