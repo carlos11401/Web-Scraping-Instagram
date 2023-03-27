@@ -133,6 +133,43 @@ def login_instagram():
     print('>> Cookies saved.')
     return True
 
+def download_images():
+    driver.get(f'{instagram_url}/explore/tags/python/')
+    wait = WebDriverWait(driver, 10)
+    
+    hashtag = input('>> Enter a hashtag: #')
+    number_of_images = int(input('>> Enter number of images to download: '))
+    driver.get(f'{instagram_url}/explore/tags/{hashtag}/')
+
+    print('>> Downloading images...')
+    url_list = []
+    count_url = 0
+    while len(url_list) < number_of_images:
+        elements = wait.until(ec.presence_of_all_elements_located((By.CSS_SELECTOR, 'div._aagv')))
+        
+        for element in elements:
+            try:
+                url = element.find_element(By.CSS_SELECTOR, 'img').get_attribute('src')
+                if url not in url_list:
+                    url_list.append(url)
+                    count_url += 1
+
+            except:
+                pass
+           
+        
+            if count_url == number_of_images:
+                break
+
+        driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
+    print('>> Images downloaded. Total:', len(url_list))
+    print(len(url_list))
+    print(url_list[0])
+    print(url_list[1])
+    print(url_list[2])
+    print(url_list[3])
+    print(url_list[4])
+    print(url_list)
 
 if __name__ == '__main__':
     driver = init_chrome()
@@ -140,7 +177,10 @@ if __name__ == '__main__':
     res_login = login_instagram()
     if not res_login:
         print('>> Login unsuccessful')
-
+        input('>> Press any key to continue...')
+        driver.quit()
+        sys.exit(1)
+    download_images()
     input('>> Press any key to continue...')
     driver.quit()
     sys.exit(1)
