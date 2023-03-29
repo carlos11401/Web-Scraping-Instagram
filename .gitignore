@@ -2,3 +2,4 @@ chromedriver/
 instagram.cookies
 src/config_ig.py
 src/__pycache__/*
+main2.py
