@@ -20,6 +20,8 @@ class Instagram:
         
         self.driver = chrome.driver
         self.wait = chrome.wait
+
+        self.cookies_file = 'instagram.cookies'
     
     def start(self):
         if not self.login():
@@ -28,24 +30,22 @@ class Instagram:
             self.driver.quit()
             sys.exit(1)
 
-        self.get_images_url()
+
+        hashtag = input('>> Enter a hashtag: #')
+        number_of_images = int(input('>> Enter number of images to download: '))
+        self.get_images_url(hashtag, number_of_images)
         input('>> Press any key to continue...')
 
     def login(self):
-        if os.path.exists('instagram.cookies'):
-            print('>> Logging in by cookies...')
-            print('>> Cookies found')
-            
-            cookies = pickle.load(open('instagram.cookies', 'rb'))
-            self.driver.get(self.instagram_robots_url)
-            for cookie in cookies:
-                self.driver.add_cookie(cookie)
-            self.driver.refresh()
-            self.driver.get(self.instagram_url)
-            print('>> Login successful')
-            return True
-        
-        print('>> Logging in ...')
+        if os.path.exists(self.cookies_file):
+            response = self.login_by_cookies()
+            return response
+        else:
+            response = self.manual_login()
+            return response
+
+    def manual_login(self):
+        print('>> Manual logging in ...')
         self.driver.get(self.instagram_url)
         try:
             # text box for username
@@ -72,23 +72,36 @@ class Instagram:
             print('>> ERROR!!! Element not found')
             return False
         
+        print('>> Saving cookies...')
         cookies = self.driver.get_cookies()
         pickle.dump(cookies, open('instagram.cookies', 'wb'))
         print('>> Cookies saved.')
         return True
-    
-    def get_images_url(self):        
-        hashtag = input('>> Enter a hashtag: #')
-        number_of_images = int(input('>> Enter number of images to download: '))
+
+    def login_by_cookies(self):
+        try:
+            print('>> Logging in by cookies...') 
+            cookies = pickle.load(open(self.cookies_file, 'rb'))
+            self.driver.get(self.instagram_robots_url)
+            for cookie in cookies:
+                self.driver.add_cookie(cookie)
+            self.driver.refresh()
+            self.driver.get(self.instagram_url)
+            print('>> Login successful')
+            return True
+        except:
+            print('>> ERROR!!! Cookies not found')
+            return False
+
+    def get_images_url(self, hashtag, number_of_images):   
+        print('>> Getting images url...')     
         
         self.driver.get(f'{self.instagram_url}/explore/tags/{hashtag}/')
-
-        print('>> Getting images url...')
         url_list = []
         count_url = 0
         while len(url_list) < number_of_images:
             elements = self.wait.until(ec.presence_of_all_elements_located((By.CSS_SELECTOR, 'div._aagv')))
-            
+        
             for element in elements:
                 try:
                     url = element.find_element(By.CSS_SELECTOR, 'img').get_attribute('src')
@@ -98,7 +111,6 @@ class Instagram:
 
                 except:
                     pass
-            
             
                 if count_url == number_of_images:
                     break
