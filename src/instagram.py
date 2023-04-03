@@ -19,6 +19,8 @@ class Instagram:
 
         self.instagram_url = 'https://www.instagram.com'
         self.instagram_robots_url = 'https://www.instagram.com/robots.txt'
+
+        self.images = Images([])
         
         self.driver = chrome.driver
         self.wait = chrome.wait
@@ -35,14 +37,15 @@ class Instagram:
         while True:
             hashtag = input('>> Enter a hashtag: #')
             if hashtag == '':
+                self.images.delete()
                 break
-            
+
             number_of_images = int(input('>> Enter number of images to download: '))
-
             images_url = self.get_images_url(hashtag, number_of_images)
-            images = Images(images_url)
 
-            images.download()
+            self.images.delete()
+            self.images.set_images_url(images_url)
+            self.images.download()
 
     def login(self):
         if os.path.exists(self.cookies_file):
