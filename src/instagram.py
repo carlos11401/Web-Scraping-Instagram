@@ -32,13 +32,17 @@ class Instagram:
             self.driver.quit()
             sys.exit(1)
 
+        while True:
+            hashtag = input('>> Enter a hashtag: #')
+            if hashtag == '':
+                break
+            
+            number_of_images = int(input('>> Enter number of images to download: '))
 
-        hashtag = input('>> Enter a hashtag: #')
-        number_of_images = int(input('>> Enter number of images to download: '))
-        images_url = self.get_images_url(hashtag, number_of_images)
-        images = Images(images_url)
-        images.download()
-        input('>> Press any key to continue...')
+            images_url = self.get_images_url(hashtag, number_of_images)
+            images = Images(images_url)
+
+            images.download()
 
     def login(self):
         if os.path.exists(self.cookies_file):
