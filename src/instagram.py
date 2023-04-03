@@ -1,6 +1,7 @@
 # install chromedriver automatically
 import os
 import pickle
+import sys
 # selenium driver
 # define type of element to search
 from selenium.webdriver.common.by import By
@@ -9,6 +10,7 @@ from selenium.common.exceptions import TimeoutException # exception to handle
 # instagram credentials
 from src.config_ig import *
 from src.chrome import *
+from src.image import Images
 
 class Instagram:
     def __init__(self):
@@ -20,7 +22,7 @@ class Instagram:
         
         self.driver = chrome.driver
         self.wait = chrome.wait
-
+        
         self.cookies_file = 'instagram.cookies'
     
     def start(self):
@@ -33,7 +35,9 @@ class Instagram:
 
         hashtag = input('>> Enter a hashtag: #')
         number_of_images = int(input('>> Enter number of images to download: '))
-        self.get_images_url(hashtag, number_of_images)
+        images_url = self.get_images_url(hashtag, number_of_images)
+        images = Images(images_url)
+        images.download()
         input('>> Press any key to continue...')
 
     def login(self):
@@ -49,7 +53,7 @@ class Instagram:
         self.driver.get(self.instagram_url)
         try:
             # text box for username
-            element = self.wait(ec.visibility_of_element_located((By.NAME, 'username'))) # wait for element to appear
+            element = self.wait.until(ec.visibility_of_element_located((By.NAME, 'username'))) # wait for element to appear
             element.send_keys(USER_IG)
 
             # text box for password
@@ -108,7 +112,6 @@ class Instagram:
                     if url not in url_list:
                         url_list.append(url)
                         count_url += 1
-
                 except:
                     pass
             
@@ -116,5 +119,6 @@ class Instagram:
                     break
 
             self.driver.execute_script('window.scrollTo(0, document.body.scrollHeight);')
-        print('>> Total Images:', len(url_list))
+        
+        print('>> Images url obtained.')
         return url_list

@@ -1,17 +1,11 @@
 # install chromedriver automatically
-import os
-import pickle
-import sys
 from webdriver_manager.chrome import ChromeDriverManager
 # selenium driver
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 # define type of element to search
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait # wait for element
-from selenium.webdriver.support import expected_conditions as ec # conditions to wait for
-from selenium.common.exceptions import TimeoutException # exception to handle
+from selenium.webdriver.support.wait import WebDriverWait # wait for element
 # instagram credentials
 from src.config_ig import *
 
@@ -28,10 +22,10 @@ class Chrome:
         myOptions = self.get_chromeOptions()
         myService = Service(path) 
         
-        driver = webdriver.Chrome(service=myService, options=myOptions)
-        driver.set_window_position(0, 0)
-        self.wait = WebDriverWait(driver, 10)
-        self.driver = driver
+        self.driver = webdriver.Chrome(service=myService, options=myOptions)
+        self.driver.set_window_position(0, 0)
+        
+        self.wait = WebDriverWait(self.driver, 10)
     
     def get_chromeOptions(self):
         # Set up Chrome options
